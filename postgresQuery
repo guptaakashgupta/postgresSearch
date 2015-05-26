@@ -1,0 +1,23 @@
+UPDATE projectsearch_universityproject SET project_tsv =     setweight(to_tsvector(coalesce(title,'')), 'A')    ||
+    setweight(to_tsvector(coalesce(university,'')), 'A')  ||
+    setweight(to_tsvector(coalesce(year,'')), 'C') ||
+    setweight(to_tsvector(coalesce(tags,'')), 'B');
+    
+    
+    
+UPDATE projectsearch_universityproject
+SET project_tsv=z.document
+FROM(
+SELECT setweight(to_tsvector(coalesce(b.title,'')), 'A')||
+       setweight(to_tsvector(coalesce(a.name,'')), 'A')||
+       setweight(to_tsvector(coalesce(to_char(b.year,''),'')), 'C')||
+       setweight(to_tsvector(coalesce(d.name,'')), 'A') as document,
+       b.id
+FROM projectsearch_university a,
+     projectsearch_universityproject b,
+     projectsearch_universityproject_tags c,
+     projectsearch_tag d
+WHERE b.university_id=a.id AND
+      b.id=c.universityproject_id AND
+      c.tag_id=d.id) as z
+WHERE z.id=projectsearch_universityproject.id
